@@ -247,6 +247,7 @@ function Show-InteractiveMenu {
             @{ Label = "code-simplifier"; Desc = "Code simplification & cleanup";     Default = $true;  Id = "plug-code-simplifier" }
             @{ Label = "everything-claude-code"; Desc = "TDD, security, database, Go/Python/Spring Boot"; Default = $false; Id = "plug-everything-claude-code" }
             @{ Label = "update-config";   Desc = "Configure Claude Code via settings.json (skill)"; Default = $true; Id = "skill-update-config" }
+            @{ Label = "handoff";         Desc = "Compact conversation into a handoff doc (mattpocock) (skill)"; Default = $true; Id = "skill-handoff" }
         )}
         @{ Label = "Integrations"; Hint = "external tools & services"; Items = @(
             @{ Label = "context7";        Desc = "Real-time library documentation";   Default = $true;  Id = "plug-context7" }
@@ -539,6 +540,7 @@ function Show-InteractiveMenu {
             "skill-humanizer"      { $result.Skills = $true; $result.SelectedSkills += "humanizer" }
             "skill-humanizer-zh"   { $result.Skills = $true; $result.SelectedSkills += "humanizer-zh" }
             "skill-update-config"  { $result.Skills = $true; $result.SelectedSkills += "update-config" }
+            "skill-handoff"        { $result.Skills = $true; $result.SelectedSkills += "handoff" }
             "deepxiv-cli"          { $result.DeepXiv = $true; $result.DeepXivSkills += "deepxiv-cli" }
             "deepxiv-trending-digest" { $result.DeepXiv = $true; $result.DeepXivSkills += "deepxiv-trending-digest" }
             "deepxiv-baseline-table"  { $result.DeepXiv = $true; $result.DeepXivSkills += "deepxiv-baseline-table" }

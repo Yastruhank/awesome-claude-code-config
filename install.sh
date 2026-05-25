@@ -488,7 +488,8 @@ ralph-loop|Automated iteration loop|1|plug-ralph-loop
 commit-commands|git commit / push / PR workflow|1|plug-commit-commands
 code-simplifier|Code simplification & cleanup|1|plug-code-simplifier
 everything-claude-code|TDD, security, database, Go/Python/Spring Boot|0|plug-everything-claude-code
-update-config|Configure Claude Code via settings.json (skill)|1|skill-update-config")
+update-config|Configure Claude Code via settings.json (skill)|1|skill-update-config
+handoff|Compact conversation into a handoff doc (mattpocock) (skill)|1|skill-handoff")
 
     # Group 4: Integrations
     GROUP_LABELS+=("Integrations")
@@ -931,6 +932,7 @@ deepxiv-baseline-table|Baseline comparison table from papers|0|deepxiv-baseline-
             skill-humanizer)        INSTALL_SKILLS=true; SELECTED_SKILLS+=("humanizer") ;;
             skill-humanizer-zh)     INSTALL_SKILLS=true; SELECTED_SKILLS+=("humanizer-zh") ;;
             skill-update-config)    INSTALL_SKILLS=true; SELECTED_SKILLS+=("update-config") ;;
+            skill-handoff)          INSTALL_SKILLS=true; SELECTED_SKILLS+=("handoff") ;;
             # DeepXiv
             deepxiv-cli)            INSTALL_DEEPXIV=true; SELECTED_DEEPXIV_SKILLS+=("deepxiv-cli") ;;
             deepxiv-trending-digest) INSTALL_DEEPXIV=true; SELECTED_DEEPXIV_SKILLS+=("deepxiv-trending-digest") ;;

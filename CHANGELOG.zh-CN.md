@@ -1,5 +1,14 @@
 # 更新日志
 
+## [2.6.1] - 2026-05-25
+
+### 新功能
+- **新增内置 skill：`handoff`**（来自 [`mattpocock/skills`](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md)）—— 把当前对话压缩成一份交接文档并写入操作系统的临时目录，方便下一个 agent 直接接手而无须继承完整上下文。文档包含 `suggested skills` 章节、用路径/URL 引用已有制品（PRD、计划、ADR、issue、commit、diff）而非重复粘贴、并对密钥与隐私敏感信息做脱敏。已注册到两个安装器的 **Workflow** 分组，**默认开启**。
+
+### 注意事项
+- skill 会把交接文档写入用户操作系统的临时目录（如 `/tmp` 或 `%TEMP%`），不会污染当前仓库。
+- 原作者归属以 HTML 注释形式保留在 `skills/handoff/SKILL.md` 顶部。
+
 ## [2.6.0] - 2026-05-22
 
 ### 新功能

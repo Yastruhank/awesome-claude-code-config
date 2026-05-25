@@ -35,7 +35,7 @@ irm https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/main/i
   > [5/5] Core                   全局指令、设置、规则...
     [0/3] Language Rules          Python / TypeScript / Go
     [2/3] Review                  code-review + adversarial-review
-    [7/8] Workflow                karpathy、superpowers、update-config...
+    [8/9] Workflow                karpathy、superpowers、update-config、handoff...
     [3/3] Integrations            context7、github、playwright
     [4/5] Design & Content        document-skills、frontend-design、humanizer...
     [0/3] Memory & Lifestyle      claude-mem、claude-health、PUA
@@ -74,7 +74,7 @@ irm https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/main/i
 | [**adversarial-review**](https://github.com/poteto/noodle/blob/main/.agents/skills/adversarial-review/SKILL.md) | 内置 skill | 跨模型审查（Skeptic / Architect / Minimalist 视角） | 开启 |
 | [**codex**](https://github.com/openai/codex-plugin-cc) | openai-codex（插件） | Codex CLI 驱动的对抗式审查 | 关闭 |
 
-**Workflow (8)** — 规划、迭代、代码质量、元配置。
+**Workflow (9)** — 规划、迭代、代码质量、元配置。
 
 | 项目 | 来源 | 功能 | 默认 |
 |------|------|------|------|
@@ -86,6 +86,7 @@ irm https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/main/i
 | **code-simplifier** | claude-plugins-official | 代码简化与重构 | 开启 |
 | [**everything-claude-code**](https://github.com/affaan-m/everything-claude-code) | everything-claude-code | TDD、安全、数据库、Go/Python/Spring Boot | 关闭 |
 | [**update-config**](skills/update-config/) | 内置 skill | `/update-config` — 在会话内重新运行安装器 | 开启 |
+| [**handoff**](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md) | 内置 skill | 把当前对话压缩成交接文档，便于下一个 agent 接手 | 开启 |
 
 **Integrations (3)** — 外部工具与服务。
 

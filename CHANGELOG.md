@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.6.1] - 2026-05-25
+
+### Features
+- **New bundled skill: `handoff`** (from [`mattpocock/skills`](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md)) — compacts the current conversation into a handoff document written to the OS temp directory, so a fresh agent can pick up the work without inheriting the full context. Includes a `suggested skills` section, references existing artifacts by path/URL rather than duplicating them, and redacts sensitive data. Registered in the **Workflow** group of both installers and **enabled by default**.
+
+### Notes & Caveats
+- The skill writes to the user's OS temp directory (e.g. `/tmp` or `%TEMP%`), not the current workspace — handoff docs do not pollute the repo.
+- Source attribution preserved as an HTML comment in `skills/handoff/SKILL.md`.
+
 ## [2.6.0] - 2026-05-22
 
 ### Features
