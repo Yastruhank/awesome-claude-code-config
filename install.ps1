@@ -35,9 +35,10 @@ $CLAUDE_DIR = Join-Path $env:USERPROFILE ".claude"
 $script:REPO_OWNER = if ($env:REPO_OWNER) { $env:REPO_OWNER } else { "Mizoreww" }
 $script:REPO_NAME = if ($env:REPO_NAME) { $env:REPO_NAME } else { "awesome-claude-code-config" }
 $script:REPO_BRANCH = if ($env:REPO_BRANCH) { $env:REPO_BRANCH } else { "main" }
-$script:REPO_OWNER = if ($env:REPO_OWNER_OVERRIDE) { $env:REPO_OWNER_OVERRIDE } else { $script:REPO_OWNER }
-$script:REPO_NAME = if ($env:REPO_NAME_OVERRIDE) { $env:REPO_NAME_OVERRIDE } else { $script:REPO_NAME }
-$script:REPO_BRANCH = if ($env:REPO_BRANCH_OVERRIDE) { $env:REPO_BRANCH_OVERRIDE } else { $script:REPO_BRANCH }
+# Validate metadata so the assembled URLs stay well-formed and safe.
+if ($script:REPO_OWNER -notmatch '^[A-Za-z0-9._-]+$') { Write-Host "Invalid REPO_OWNER: $($script:REPO_OWNER)" -ForegroundColor Red; exit 1 }
+if ($script:REPO_NAME -notmatch '^[A-Za-z0-9._-]+$') { Write-Host "Invalid REPO_NAME: $($script:REPO_NAME)" -ForegroundColor Red; exit 1 }
+if ($script:REPO_BRANCH -notmatch '^[A-Za-z0-9._/-]+$') { Write-Host "Invalid REPO_BRANCH: $($script:REPO_BRANCH)" -ForegroundColor Red; exit 1 }
 $script:REPO_URL = "https://github.com/$($script:REPO_OWNER)/$($script:REPO_NAME)"
 $VERSION_STAMP_FILE = Join-Path $CLAUDE_DIR ".awesome-claude-code-config-version"
 
@@ -1465,9 +1466,7 @@ function Main {
         Write-Info "Upgrading from $installedVer -> $sourceVer"
     }
 
-    if ($DryRun) {
-        Write-Info "Would ensure install directory exists: $CLAUDE_DIR"
-    } elseif (-not (Test-Path $CLAUDE_DIR)) {
+    if (-not (Test-Path $CLAUDE_DIR)) {
         New-Item -ItemType Directory -Path $CLAUDE_DIR -Force | Out-Null
     }
 

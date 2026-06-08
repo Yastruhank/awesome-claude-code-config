@@ -10,9 +10,19 @@ CLAUDE_DIR="$HOME/.claude"
 REPO_OWNER="${REPO_OWNER:-Mizoreww}"
 REPO_NAME="${REPO_NAME:-awesome-claude-code-config}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
-REPO_OWNER="${REPO_OWNER_OVERRIDE:-$REPO_OWNER}"
-REPO_NAME="${REPO_NAME_OVERRIDE:-$REPO_NAME}"
-REPO_BRANCH="${REPO_BRANCH_OVERRIDE:-$REPO_BRANCH}"
+# These values are interpolated into URLs that, in remote mode, are evaluated by
+# `bash -c` (see detect_script_dir). Validate against a safe charset to prevent
+# command injection from a hostile/garbled environment. (error() is not defined
+# yet at this point in the script, so emit to stderr directly.)
+if [[ ! "$REPO_OWNER" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    echo "Invalid REPO_OWNER: $REPO_OWNER" >&2; exit 1
+fi
+if [[ ! "$REPO_NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    echo "Invalid REPO_NAME: $REPO_NAME" >&2; exit 1
+fi
+if [[ ! "$REPO_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+    echo "Invalid REPO_BRANCH: $REPO_BRANCH" >&2; exit 1
+fi
 REPO_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}"
 VERSION_STAMP_FILE="$CLAUDE_DIR/.awesome-claude-code-config-version"
 
@@ -170,9 +180,10 @@ detect_script_dir() {
         trap 'rm -rf "$tmpdir"' EXIT
 
         local version="${VERSION:-$REPO_BRANCH}"
-        # Sanitize VERSION to prevent command injection
-        if [[ ! "$version" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-            error "Invalid VERSION value: $version (only alphanumeric, dots, hyphens, underscores allowed)"
+        # Sanitize VERSION/branch to prevent command injection. Slash is allowed
+        # so branch refs like "feature/foo" work; it is safe inside the quoted URL.
+        if [[ ! "$version" =~ ^[a-zA-Z0-9._/-]+$ ]]; then
+            error "Invalid VERSION value: $version (only alphanumeric, dots, slashes, hyphens, underscores allowed)"
             exit 1
         fi
         local tarball_url="$REPO_URL/archive/refs/heads/${version}.tar.gz"
@@ -1800,11 +1811,7 @@ main() {
         info "Upgrading from $installed_ver -> $(get_source_version)"
     fi
 
-    if $DRY_RUN; then
-        info "Would ensure install directory exists: $CLAUDE_DIR"
-    else
-        mkdir -p "$CLAUDE_DIR"
-    fi
+    mkdir -p "$CLAUDE_DIR"
 
     $INSTALL_CLAUDE_MD && install_claude_md
     $INSTALL_SETTINGS && install_settings
