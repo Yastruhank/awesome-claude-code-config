@@ -1,191 +1,220 @@
-<!-- This is the source of truth. README.zh-CN.md is the Chinese translation. Keep both in sync. -->
+[Source English](https://github.com/Mizoreww/awesome-claude-code-config/blob/main/README.md) | [Source 中文](https://github.com/Mizoreww/awesome-claude-code-config/blob/main/README.zh-CN.md) | **Codex English** | [Codex 中文](./README.zh-CN.md)
 
-**English** | [中文](./README.zh-CN.md) | [Codex Branch](https://github.com/Mizoreww/awesome-claude-code-config/tree/codex) | [Changelog](./CHANGELOG.md)
+# Codex Configuration
 
-# Awesome Claude Code Configuration
-
-![Statusline](assets/statusline.png)
-
-Production-ready configuration for [Claude Code](https://claude.com/claude-code). One-command install of global instructions, multi-language coding rules (Python / TypeScript / Go), 24 curated plugins across 9 marketplaces, five bundled skills, a gradient status bar, and a self-improvement loop that remembers corrections across sessions.
-
-## Showcase
-
-![Claude Code Demo](images/claude-code-demo.png)
-
-- [paper-reading skill — *Attention Is All You Need*](docs/Attention_Is_All_You_Need.md)
-- [adversarial-review skill — worked example](docs/adversarial-review-showcase.md)
-
-## Quick Start
-
-**macOS / Linux**:
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/main/install.sh)
-```
-
-**Windows (PowerShell)**:
-
-```powershell
-irm https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/main/install.ps1 | iex
-```
-
-Launches a two-level interactive selector. Append `--all` / `-All` to skip the menu and install everything non-interactively. Other flags: `--dry-run`, `--uninstall`, `--version` (PowerShell: `-DryRun`, `-Uninstall`, `-Version`).
-
-```
-  > [5/5] Core                   Global instructions, settings, rules...
-    [0/3] Language Rules          Python / TypeScript / Go
-    [2/3] Review                  code-review + adversarial-review
-    [8/9] Workflow                karpathy, superpowers, update-config, handoff...
-    [3/3] Integrations            context7, github, playwright
-    [4/5] Design & Content        document-skills, frontend-design, humanizer...
-    [0/3] Memory & Lifestyle      claude-mem, claude-health, PUA
-    [1/10] Academic Research      paper-reading, deepxiv-cli...
-    [0/1] MCP Servers             Lark/Feishu
-```
-
-- **Main menu**: ↑↓ navigate groups, **Enter or →** open a group's sub-menu, **q** quit. Arrow to *Submit* and press Enter to install.
-- **Sub-menu**: ↑↓ navigate items, **Space** toggle, **← or Esc** back to main menu (same as pressing Enter on *[ Back ]*).
-- Shortcuts (any level): **a** all on, **n** all off, **d** defaults; in sub-menus these only affect that group.
-- The Review group's `adversarial-review` and `codex` are mutually exclusive — selecting one deselects the other.
-
-**Core (5)** — foundational files, all on by default.
-
-| Item | What It Does | Default |
-|------|--------------|---------|
-| CLAUDE.md | Global instructions template | on |
-| settings.json | Smart-merged Claude Code settings | on |
-| Common rules | `rules/common/` — coding style, git, security, testing | on |
-| StatusLine | Gradient progress bar & 5h usage (`hooks/statusline.sh`) | on |
-| Lessons | `lessons.md` template + `SessionStart` hook | on |
-
-**Language Rules (3)** — off by default, enable only what your projects use.
-
-| Item | What It Does | Default |
-|------|--------------|---------|
-| Python rules | PEP 8, pytest, type hints, bandit | off |
-| TypeScript rules | Zod, Playwright, immutability | off |
-| Go rules | gofmt, table-driven tests, gosec | off |
-
-**Review (3)** — `adversarial-review` and `codex` are mutually exclusive.
-
-| Item | Source | What It Does | Default |
-|------|--------|--------------|---------|
-| **code-review** | claude-plugins-official (plugin) | Confidence-based PR code review | on |
-| [**adversarial-review**](https://github.com/poteto/noodle/blob/main/.agents/skills/adversarial-review/SKILL.md) | bundled skill | Cross-model review (Skeptic / Architect / Minimalist lenses) | on |
-| [**codex**](https://github.com/openai/codex-plugin-cc) | openai-codex (plugin) | Codex CLI-backed adversarial review | off |
-
-**Workflow (9)** — planning, iteration, code quality, meta-config.
-
-| Item | Source | What It Does | Default |
-|------|--------|--------------|---------|
-| [**andrej-karpathy-skills**](https://github.com/forrestchang/andrej-karpathy-skills) | karpathy-skills (plugin) | Karpathy coding guidelines: Think-First, Simplicity, Surgical, Goal-Driven | on |
-| [**superpowers**](https://github.com/obra/superpowers) | claude-plugins-official | Brainstorming, debugging, code review, git worktrees, plan writing | on |
-| **feature-dev** | claude-plugins-official | Guided feature development | on |
-| **ralph-loop** | claude-plugins-official | Automated iteration loop (session-aware REPL) | on |
-| **commit-commands** | claude-plugins-official | Git commit / push / PR workflow | on |
-| **code-simplifier** | claude-plugins-official | Code simplification and refactoring | on |
-| [**everything-claude-code**](https://github.com/affaan-m/everything-claude-code) | everything-claude-code | TDD, security, database, Go/Python/Spring Boot | off |
-| [**update-config**](skills/update-config/) | bundled skill | `/update-config` — re-run installer from inside a session | on |
-| [**handoff**](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md) | bundled skill | Compact the current conversation into a handoff doc for the next agent | on |
-
-**Integrations (3)** — external tools and services.
-
-| Item | Source | What It Does | Default |
-|------|--------|--------------|---------|
-| [**context7**](https://github.com/upstash/context7) | claude-plugins-official | Up-to-date library documentation lookup | on |
-| [**github**](https://github.com/github/github-mcp-server) | claude-plugins-official | GitHub integration (issues, PRs, workflows) | on |
-| [**playwright**](https://github.com/microsoft/playwright-mcp) | claude-plugins-official | Browser automation, E2E testing, screenshots | on |
-
-**Design & Content (5)** — documents, UI, creative artifacts, text humanization.
-
-| Item | Source | What It Does | Default |
-|------|--------|--------------|---------|
-| [**document-skills**](https://github.com/anthropics/skills) | anthropic-agent-skills | PDF, DOCX, PPTX, XLSX creation and manipulation | on |
-| [**example-skills**](https://github.com/anthropics/skills) | anthropic-agent-skills | Frontend design, MCP builder, canvas, algorithmic art | on |
-| **frontend-design** | claude-plugins-official | Production-grade frontend interfaces | on |
-| [**humanizer**](https://github.com/blader/humanizer) | bundled skill | Remove AI writing patterns (English) | on |
-| [**humanizer-zh**](https://github.com/op7418/Humanizer-zh) | bundled skill | Remove AI writing patterns (Chinese) | off |
-
-**Memory & Lifestyle (3)** — session memory and personal productivity, all off by default.
-
-| Item | Source | What It Does | Default |
-|------|--------|--------------|---------|
-| [**claude-mem**](https://github.com/thedotmack/claude-mem) | thedotmack | Persistent memory with smart search, timeline, AST-aware code search | off |
-| [**claude-health**](https://github.com/tw93/claude-health) | claude-health | Health check & wellness dashboard for Claude Code sessions | off |
-| [**PUA**](https://github.com/tanweai/pua) | pua-skills | AI agent productivity booster (CN / EN / JA) | off |
-
-**Academic Research (10)** — training / inference plugins + paper-reading skills, off by default except `paper-reading`.
-
-| Item | Source | What It Does | Default |
-|------|--------|--------------|---------|
-| [**paper-reading**](skills/paper-reading/) | bundled skill | Research paper summarization with figure extraction | on |
-| [**tokenization**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | HuggingFace Tokenizers, SentencePiece | off |
-| [**fine-tuning**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | Axolotl, LLaMA-Factory, PEFT, Unsloth | off |
-| [**post-training**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | GRPO, RLHF, DPO, SimPO | off |
-| [**inference-serving**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | vLLM, SGLang, TensorRT-LLM, llama.cpp | off |
-| [**distributed-training**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | DeepSpeed, FSDP, Megatron-Core, Ray Train | off |
-| [**optimization**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | AWQ, GPTQ, GGUF, Flash Attention, bitsandbytes | off |
-| [**deepxiv-cli**](https://github.com/DeepXiv/deepxiv_sdk) | DeepXiv (GitHub) | arXiv/PMC paper search & reading CLI (hybrid BM25+Vector, 2M+ papers) | off |
-| [**deepxiv-trending-digest**](https://github.com/DeepXiv/deepxiv_sdk) | DeepXiv (GitHub) | Markdown digests of trending papers (last 7 days) | off |
-| [**deepxiv-baseline-table**](https://github.com/DeepXiv/deepxiv_sdk) | DeepXiv (GitHub) | Build baseline comparison tables from research papers | off |
-
-**MCP Servers (1)** — non-plugin MCP integrations, off by default.
-
-| Item | Source | What It Does | Default |
-|------|--------|--------------|---------|
-| [**Lark MCP server**](https://github.com/larksuite/lark-openapi-mcp) | `mcp/` | Feishu / Lark integration (replace `YOUR_APP_ID`/`YOUR_APP_SECRET` after install) | off |
+Production-ready configuration for [Codex CLI](https://github.com/openai/codex) — an interactive installer plus one-command full install of global instructions, multi-agent roles, layered coding standards through skills, MCP integration, custom status bar, and a lessons-driven self-improvement loop. This branch is Codex-first and keeps a small compatibility bridge for users migrating from the [Claude Code main config](https://github.com/Mizoreww/awesome-claude-code-config/tree/main).
 
 ## Directory Structure
 
 ```
 .
-├── CLAUDE.md              # Global instructions
-├── settings.json          # Permissions, plugins, hooks, model
-├── lessons.md             # Self-correction log template (auto-loaded via hook)
-├── rules/                 # Coding standards (common + python/typescript/golang)
-├── hooks/                 # Statusline with gradient progress bars
-├── mcp/                   # MCP server config (Lark-MCP)
-├── plugins/               # Plugin catalogue & install guide
-├── skills/                # Bundled custom skills
-├── docs/                  # Paper summaries, showcases
+├── AGENTS.md              # Global instructions
+├── config.toml            # Codex settings (model, permissions, MCP, lessons injection)
+├── agents/                # Multi-agent role configs
+├── docs/                  # Migration notes and support docs
+├── lessons.md             # Self-correction source log
+├── skills/                # Bundled local skills (paper-reading, adversarial-review, handoff, humanizer, update)
+├── VERSION                # Installer version
 └── install.sh / install.ps1
 ```
 
-## Key Mechanisms
+## Quick Start
 
-- **Layered rules** — `rules/common/` (universal) extended by per-language directories. Each file references a deeper skill for patterns, testing, security.
-- **Statusline** — model, directory, venv, git branch, context window (gradient bar), 5-hour usage countdown. Script at `hooks/statusline.sh`.
-- **Self-improvement loop** — corrections route to `~/.claude/lessons.md` (cross-project) or project `MEMORY.md` (local). `SessionStart` hooks re-inject them on startup and after context compaction.
-- **Plugin catalogue & marketplace URLs** — full list with install commands: [plugins/README.md](plugins/README.md).
+One-line remote install:
 
-## Settings Defaults
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/codex/install.sh)
+```
 
-`settings.json` ships with high-performance defaults. Unknown keys are ignored by older Claude Code; only `auto` mode is version-gated (installer auto-downgrades to `bypassPermissions` below 2.1.80).
+Local install:
 
-| Key | Value | Effect |
-|-----|-------|--------|
-| `permissions.defaultMode` | `auto` | Auto-approve safe actions, block risky ones |
-| `effortLevel` | `max` | Pin `/effort` to highest reasoning tier |
-| `betas` | `extended-cache-ttl-2025-04-11` | 1-hour prompt cache (vs default 5 min) |
-| `env.CLAUDE_CODE_NO_FLICKER` | `1` | Fullscreen rendering |
-| `env.CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | `1` | Fixed thinking budget (no effect on Opus 4.7) |
+```bash
+git clone -b codex https://github.com/Mizoreww/awesome-claude-code-config.git
+cd awesome-claude-code-config
+bash install.sh
+```
 
-Smart merge on re-install preserves your overrides for `env`, `permissions.allow`, `enabledPlugins`, `hooks.SessionStart`, and `statusLine`. Third-party plugins in your `enabledPlugins` that are outside this catalogue are left untouched.
+Then restart Codex.
+
+## Interactive Installer
+
+The Codex branch now uses the same two-level interactive selector UX on both shells, and the menu groups, defaults, and install targets are Codex-native.
+
+### Bash
+
+```bash
+bash install.sh
+bash install.sh --all
+bash install.sh --dry-run
+```
+
+### PowerShell
+
+```powershell
+pwsh -NoProfile -File .\install.ps1
+pwsh -NoProfile -File .\install.ps1 -All
+pwsh -NoProfile -File .\install.ps1 -DryRun
+```
+
+Behavior notes:
+
+- Bash plain no-arg runs are interactive when a terminal is available; if it cannot open a terminal, it warns and falls back to a non-interactive full install.
+- PowerShell plain no-arg runs are interactive when console I/O is available; if it cannot use the console, it warns and falls back to a non-interactive full install.
+- In Bash, `--dry-run` previews the full install non-interactively.
+- In PowerShell, `-DryRun` alone previews the full install non-interactively.
+- PowerShell treats an empty interactive submission as a no-op.
+
+### Codex menu groups and defaults
+
+| Group | Items | Default |
+|-------|-------|---------|
+| Core | `AGENTS.md`, `config.toml`, `lessons.md` | On |
+| Agents | `explorer`, `reviewer`, `docs-researcher` | On |
+| Skills — Recommended | `superpowers`, `document-skills`, `example-skills`, `coding-foundations`, `paper-reading`, `humanizer`, `humanizer-zh`, `handoff`, `adversarial-review`, `update` | On except `humanizer-zh` |
+| Skills — AI Research | `tokenization`, `fine-tuning`, `post-training`, `distributed-training`, `inference-serving`, `optimization`, `deepxiv` | Off |
+| MCP Servers | `context7`, `github`, `playwright`, `openaiDeveloperDocs`, `lark-mcp` | On except `lark-mcp` |
+
+## Installer Options
+
+```bash
+./install.sh                         # interactive selector when a terminal is available
+./install.sh --all                   # non-interactive full install
+./install.sh --core                  # only AGENTS.md / lessons.md / config.toml / agents/*
+./install.sh --mcp                   # only MCP servers
+./install.sh --skills core           # only core skill sets
+./install.sh --skills ai-research    # only AI research skill sets
+./install.sh --version               # source/installed/remote version info
+./install.sh --uninstall --skills    # uninstall managed skills only
+./install.sh --dry-run               # non-interactive full preview
+```
+
+## Key Features
+
+### Self-Improvement Loop (Lessons Only)
+
+1. User correction is recorded into `~/.codex/lessons.md`
+2. New sessions auto-load `~/.codex/lessons.md`
+3. Stable patterns are promoted into `~/.codex/AGENTS.md`
+
+### Lessons Injection
+
+`config.toml` uses:
+
+```toml
+model_instructions_file = "lessons.md"
+```
+
+This keeps correction rules active at session start.
+
+### Multi-Agent Ready
+
+`config.toml` ships with experimental multi-agent enabled and three default roles:
+
+- `explorer`: code path exploration and evidence collection
+- `reviewer`: correctness/regression/security-focused review
+- `docs_researcher`: API/docs verification through OpenAI docs MCP + Context7
+
+Role files live under `agents/*.toml` and are installed to `~/.codex/agents/`.
+
+### Layered Rules via Skills
+
+```
+core behavior   → AGENTS.md
+  ↓ reinforced by
+skills/rules    → python-patterns, golang-patterns, frontend-patterns
+```
+
+This keeps common principles and language-specific practices aligned.
+
+### Skill-First Setup
+
+`install.sh` bootstraps practical skills from open-source ecosystems:
+
+| Skill Set | Source | Coverage |
+|----------|--------|----------|
+| superpowers | [obra/superpowers](https://github.com/obra/superpowers) | full native superpowers set, including brainstorming, plan execution, review handoff, worktrees |
+| coding-foundations | [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code) | language patterns, testing, security, verification (Codex-facing label for this upstream pack) |
+| anthropic skills packs | [anthropics/skills](https://github.com/anthropics/skills) | document tools, frontend design, canvas/art, MCP builder |
+| DeepXiv skills | [DeepXiv/deepxiv_sdk](https://github.com/DeepXiv/deepxiv_sdk) | latest DeepXiv research workflows (`deepxiv-cli`, `deepxiv-baseline-table`, `deepxiv-trending-digest`) fetched fresh during install |
+| AI research skills | [zechenzhangAGI/AI-research-SKILLs](https://github.com/zechenzhangAGI/AI-research-SKILLs) | tokenization, fine-tuning, post-training, inference, distributed training, optimization |
+
+Superpowers are installed using the repo's current native-discovery flow:
+- clone to `~/.codex/superpowers`
+- symlink `~/.codex/superpowers/skills` to `~/.agents/skills/superpowers`
+- clean up the legacy partial-copy install (`using-superpowers`, `systematic-debugging`, `writing-plans`, `test-driven-development`) under `~/.codex/skills`
+
+Bundled local skills in this repo:
+- `paper-reading` (`skills/paper-reading/SKILL.md`) — structured research paper summarization
+- `adversarial-review` (`skills/adversarial-review/SKILL.md`) — cross-model adversarial code review via opposite AI CLI (from [poteto/noodle](https://github.com/poteto/noodle/tree/main/.agents/skills/adversarial-review))
+- `handoff` (`skills/handoff/SKILL.md`) — compact the current conversation into a handoff document
+- `humanizer` (`skills/humanizer/SKILL.md`) — detect and remove AI writing patterns from text (from [blader/humanizer](https://github.com/blader/humanizer))
+- `humanizer-zh` (`skills/humanizer-zh/SKILL.md`) — remove AI writing patterns from Chinese text
+- `update` (`skills/update/SKILL.md`) — update the installed Codex config to the latest `codex` branch version
+
+DeepXiv skills are refreshed from upstream on every `install.sh` run, similar to superpowers:
+- `deepxiv-cli`
+- `deepxiv-baseline-table`
+- `deepxiv-trending-digest`
+
+For Codex users, no separate local `deepxiv` CLI installation is required. Keeping these skills refreshed inside Codex is enough for the supported workflow in this repo.
+
+### Version Changelog Policy
+
+AGENTS.md includes a **Version Changelog** rule: when making version-level changes (new features, major refactors, breaking changes), the agent proactively maintains a `CHANGELOG.md` in the project root with structured entries covering features, design rationale, and caveats. This keeps design decisions traceable alongside the code.
+
+### MCP Integration
+
+Default MCP servers in `config.toml`:
+
+| Server | Purpose |
+|--------|---------|
+| Lark MCP | Feishu/Lark docs, sheets, chats, base ([repo](https://github.com/larksuite/lark-openapi-mcp)) |
+| Context7 | up-to-date library documentation lookup ([repo](https://github.com/upstash/context7)) |
+| GitHub | issue/PR/repo workflows ([repo](https://github.com/github/github-mcp-server)) |
+| Playwright | browser automation and E2E testing ([repo](https://github.com/microsoft/playwright-mcp)) |
+| OpenAI Developer Docs | official OpenAI docs MCP endpoint (`https://developers.openai.com/mcp`) |
+
+## Installation Notes
+
+1. Fill your own credentials:
+   - `YOUR_APP_ID` / `YOUR_APP_SECRET` (Lark)
+   - `YOUR_GITHUB_PAT` (GitHub MCP)
+2. This config uses current Codex style (for example `web_search = "live"` at top-level).
+3. If `~/.codex/config.toml` already exists, installer skips overwriting it; merge manually if needed.
+
+### Adversarial Code Review
+
+AGENTS.md includes a **Code Review** rule: whenever a code review is needed, invoke the `adversarial-review` skill (from [poteto/noodle](https://github.com/poteto/noodle/tree/main/.agents/skills/adversarial-review)). In Codex sessions, this skill can call the opposite model's CLI (`claude -p`) to produce cross-model adversarial analysis with structured verdicts (PASS / CONTESTED / REJECT); the reciprocal `codex exec` path remains documented inside the skill for compatibility with other environments.
+
+## Compatibility for users migrating from the Claude Code main branch
+
+See [`docs/claude-main-to-codex-migration.md`](./docs/claude-main-to-codex-migration.md) for a concrete mapping of:
+
+- `CLAUDE.md` → `AGENTS.md`
+- `settings.json` → `config.toml`
+- Claude-era plugins → Codex skills / MCP / built-ins
+- `mcp/mcp-servers.json` → `[mcp_servers.*]` in `config.toml`
+
+## Security Note
+
+Template defaults are power-user oriented:
+- `approval_policy = "never"`
+- `sandbox_mode = "danger-full-access"`
+
+If you prefer safer defaults, adjust these in `~/.codex/config.toml`.
 
 ## Customization
 
-- **Add a language**: create `rules/<lang>/` extending `rules/common/`
-- **Add a skill**: place in `skills/<name>/SKILL.md`
-- **Adapt CLAUDE.md**: tune for your shell, package manager, project context
+- **Adjust global behavior**: edit `AGENTS.md`
+- **Add local rules**: extend skills in `~/.codex/skills`
+- **Tune model/runtime**: edit `config.toml`
+- **Enable/disable MCP servers**: edit MCP sections in `config.toml` or use `codex mcp` commands
 
 ## Acknowledgements
 
-- [Claude Code in Action](https://anthropic.skilljar.com/claude-code-in-action) — Anthropic Academy's official course
-- [Working for 10 Claude Codes](https://mp.weixin.qq.com/s/9qPD3gXj3HLmrKC64Q6fbQ) by Hu Yuanming — multi-instance patterns
-- [Harness Engineering](https://openai.com/index/harness-engineering/) by OpenAI
-- [Anthropic Engineering](https://www.anthropic.com/engineering) / [OpenAI Engineering](https://openai.com/news/engineering/)
-- [Claude Code Best Practice](https://github.com/shanraisshan/claude-code-best-practice) by shanraisshan
-- [Claude How To](https://github.com/luongnv89/claude-howto) by luongnv89
+- [**Harness Engineering**](https://openai.com/index/harness-engineering/) by OpenAI — engineers shift from writing code to designing systems with agents
+- [**Anthropic Engineering**](https://www.anthropic.com/engineering) by Anthropic — Engineering blog covering agent development, evaluation methods, and building reliable AI systems
+- [**OpenAI Engineering**](https://openai.com/news/engineering/) by OpenAI — Engineering blog sharing technical insights on building and scaling AI systems
 
 ## License
 

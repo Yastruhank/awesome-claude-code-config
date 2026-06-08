@@ -1,192 +1,221 @@
-<!-- 本文件与 README.md 同步维护。README.md 为主，本文件为翻译。 -->
+[Source English](https://github.com/Mizoreww/awesome-claude-code-config/blob/main/README.md) | [Source 中文](https://github.com/Mizoreww/awesome-claude-code-config/blob/main/README.zh-CN.md) | [Codex English](./README.md) | **Codex 中文**
 
-[English](./README.md) | **中文** | [Codex 分支](https://github.com/Mizoreww/awesome-claude-code-config/tree/codex) | [更新日志](./CHANGELOG.zh-CN.md)
+# Codex 配置
 
-# Awesome Claude Code Configuration
-
-![Statusline](assets/statusline.png)
-
-[Claude Code](https://claude.com/claude-code) 的生产级配置。一条命令安装：全局指令、多语言编码规则（Python / TypeScript / Go）、9 个 marketplace 下的 24 个精选插件、5 个内置 skill、渐变状态栏，以及能跨会话记住纠正的自我改进回路。
-
-## 示例
-
-![Claude Code Demo](images/claude-code-demo.png)
-
-- [paper-reading skill 实战 — *Attention Is All You Need*](docs/Attention_Is_All_You_Need.md)
-- [adversarial-review skill 实战](docs/adversarial-review-showcase.md)
-
-## 快速开始
-
-**macOS / Linux**:
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/main/install.sh)
-```
-
-**Windows (PowerShell)**:
-
-```powershell
-irm https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/main/install.ps1 | iex
-```
-
-启动两级交互菜单。追加 `--all` / `-All` 跳过菜单全量安装。其他参数：`--dry-run`、`--uninstall`、`--version`（PowerShell 对应 `-DryRun`、`-Uninstall`、`-Version`）。
-
-```
-  > [5/5] Core                   全局指令、设置、规则...
-    [0/3] Language Rules          Python / TypeScript / Go
-    [2/3] Review                  code-review + adversarial-review
-    [8/9] Workflow                karpathy、superpowers、update-config、handoff...
-    [3/3] Integrations            context7、github、playwright
-    [4/5] Design & Content        document-skills、frontend-design、humanizer...
-    [0/3] Memory & Lifestyle      claude-mem、claude-health、PUA
-    [1/10] Academic Research      paper-reading、deepxiv-cli...
-    [0/1] MCP Servers             Lark/飞书
-```
-
-- **主菜单**：↑↓ 切换分组，**Enter 或 →** 打开分组的子菜单，**q** 退出。光标移到 *Submit* 按 Enter 开始安装。
-- **子菜单**：↑↓ 切换项目，**Space** 切换选中，**← 或 Esc** 返回主菜单（与在 *[ Back ]* 上按 Enter 等价）。
-- 快捷键（任意层）：**a** 全选、**n** 全不选、**d** 恢复默认；在子菜单中只影响当前分组。
-- Review 分组内 `adversarial-review` 与 `codex` 互斥 — 勾选一个会自动取消另一个。
-
-**Core (5)** — 基础文件，默认全部开启。
-
-| 项目 | 功能 | 默认 |
-|------|------|------|
-| CLAUDE.md | 全局指令模板 | 开启 |
-| settings.json | 智能合并 Claude Code 设置 | 开启 |
-| Common rules | `rules/common/` — 编码风格、git、安全、测试 | 开启 |
-| StatusLine | 渐变进度条 & 5 小时用量（`hooks/statusline.sh`） | 开启 |
-| Lessons | `lessons.md` 模板 + `SessionStart` hook | 开启 |
-
-**Language Rules (3)** — 默认全部关闭，仅启用项目用到的语言。
-
-| 项目 | 功能 | 默认 |
-|------|------|------|
-| Python rules | PEP 8、pytest、类型注解、bandit | 关闭 |
-| TypeScript rules | Zod、Playwright、不可变性 | 关闭 |
-| Go rules | gofmt、表驱动测试、gosec | 关闭 |
-
-**Review (3)** — `adversarial-review` 与 `codex` 互斥。
-
-| 项目 | 来源 | 功能 | 默认 |
-|------|------|------|------|
-| **code-review** | claude-plugins-official（插件） | 基于置信度的 PR 代码审查 | 开启 |
-| [**adversarial-review**](https://github.com/poteto/noodle/blob/main/.agents/skills/adversarial-review/SKILL.md) | 内置 skill | 跨模型审查（Skeptic / Architect / Minimalist 视角） | 开启 |
-| [**codex**](https://github.com/openai/codex-plugin-cc) | openai-codex（插件） | Codex CLI 驱动的对抗式审查 | 关闭 |
-
-**Workflow (9)** — 规划、迭代、代码质量、元配置。
-
-| 项目 | 来源 | 功能 | 默认 |
-|------|------|------|------|
-| [**andrej-karpathy-skills**](https://github.com/forrestchang/andrej-karpathy-skills) | karpathy-skills（插件） | Karpathy 编码守则：Think-First、Simplicity、Surgical、Goal-Driven | 开启 |
-| [**superpowers**](https://github.com/obra/superpowers) | claude-plugins-official | 头脑风暴、调试、代码审查、Git worktree、计划编写 | 开启 |
-| **feature-dev** | claude-plugins-official | 引导式功能开发 | 开启 |
-| **ralph-loop** | claude-plugins-official | 自动化迭代循环（会话感知 REPL） | 开启 |
-| **commit-commands** | claude-plugins-official | Git 提交 / 推送 / PR 工作流 | 开启 |
-| **code-simplifier** | claude-plugins-official | 代码简化与重构 | 开启 |
-| [**everything-claude-code**](https://github.com/affaan-m/everything-claude-code) | everything-claude-code | TDD、安全、数据库、Go/Python/Spring Boot | 关闭 |
-| [**update-config**](skills/update-config/) | 内置 skill | `/update-config` — 在会话内重新运行安装器 | 开启 |
-| [**handoff**](https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md) | 内置 skill | 把当前对话压缩成交接文档，便于下一个 agent 接手 | 开启 |
-
-**Integrations (3)** — 外部工具与服务。
-
-| 项目 | 来源 | 功能 | 默认 |
-|------|------|------|------|
-| [**context7**](https://github.com/upstash/context7) | claude-plugins-official | 最新库文档查询 | 开启 |
-| [**github**](https://github.com/github/github-mcp-server) | claude-plugins-official | GitHub 集成（Issue、PR、工作流） | 开启 |
-| [**playwright**](https://github.com/microsoft/playwright-mcp) | claude-plugins-official | 浏览器自动化、E2E 测试、截图 | 开启 |
-
-**Design & Content (5)** — 文档、UI、创意与文本"人化"。
-
-| 项目 | 来源 | 功能 | 默认 |
-|------|------|------|------|
-| [**document-skills**](https://github.com/anthropics/skills) | anthropic-agent-skills | PDF、DOCX、PPTX、XLSX 创建和操作 | 开启 |
-| [**example-skills**](https://github.com/anthropics/skills) | anthropic-agent-skills | 前端设计、MCP 构建器、画布、算法艺术 | 开启 |
-| **frontend-design** | claude-plugins-official | 生产级前端界面设计 | 开启 |
-| [**humanizer**](https://github.com/blader/humanizer) | 内置 skill | 去除 AI 写作特征（英文） | 开启 |
-| [**humanizer-zh**](https://github.com/op7418/Humanizer-zh) | 内置 skill | 去除 AI 写作特征（中文） | 关闭 |
-
-**Memory & Lifestyle (3)** — 会话记忆与个人生产力，默认全部关闭。
-
-| 项目 | 来源 | 功能 | 默认 |
-|------|------|------|------|
-| [**claude-mem**](https://github.com/thedotmack/claude-mem) | thedotmack | 持久化记忆，智能搜索、时间线、AST 感知代码搜索 | 关闭 |
-| [**claude-health**](https://github.com/tw93/claude-health) | claude-health | Claude Code 会话健康检查与状态面板 | 关闭 |
-| [**PUA**](https://github.com/tanweai/pua) | pua-skills | AI Agent 生产力倍增器（中 / 英 / 日） | 关闭 |
-
-**Academic Research (10)** — 训练 / 推理插件 + 论文阅读 skill，默认除 `paper-reading` 外全部关闭。
-
-| 项目 | 来源 | 功能 | 默认 |
-|------|------|------|------|
-| [**paper-reading**](skills/paper-reading/) | 内置 skill | 论文结构化摘要，支持自动抽图 | 开启 |
-| [**tokenization**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | HuggingFace Tokenizers、SentencePiece | 关闭 |
-| [**fine-tuning**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | Axolotl、LLaMA-Factory、PEFT、Unsloth | 关闭 |
-| [**post-training**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | GRPO、RLHF、DPO、SimPO | 关闭 |
-| [**inference-serving**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | vLLM、SGLang、TensorRT-LLM、llama.cpp | 关闭 |
-| [**distributed-training**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | DeepSpeed、FSDP、Megatron-Core、Ray Train | 关闭 |
-| [**optimization**](https://github.com/Orchestra-Research/AI-Research-SKILLs) | ai-research-skills | AWQ、GPTQ、GGUF、Flash Attention、bitsandbytes | 关闭 |
-| [**deepxiv-cli**](https://github.com/DeepXiv/deepxiv_sdk) | DeepXiv (GitHub) | arXiv/PMC 论文搜索与阅读 CLI（BM25+Vector 混合，200 万+ 论文） | 关闭 |
-| [**deepxiv-trending-digest**](https://github.com/DeepXiv/deepxiv_sdk) | DeepXiv (GitHub) | 近 7 天热门论文 Markdown 摘要 | 关闭 |
-| [**deepxiv-baseline-table**](https://github.com/DeepXiv/deepxiv_sdk) | DeepXiv (GitHub) | 从论文构建 Baseline 对比表 | 关闭 |
-
-**MCP Servers (1)** — 非插件的 MCP 集成，默认关闭。
-
-| 项目 | 来源 | 功能 | 默认 |
-|------|------|------|------|
-| [**Lark MCP server**](https://github.com/larksuite/lark-openapi-mcp) | `mcp/` | 飞书 / Lark 集成（安装后替换 `YOUR_APP_ID`/`YOUR_APP_SECRET`） | 关闭 |
+[Codex CLI](https://github.com/openai/codex) 的生产级配置——带交互式安装器，并支持一键完整安装全局指令、多 Agent 角色、通过技能实现分层编码规范、MCP 集成、自定义状态栏，以及基于 lessons 的自我改进循环。该分支以 Codex 为默认目标，同时为从 [Claude Code 主配置](https://github.com/Mizoreww/awesome-claude-code-config/tree/main) 迁移的用户保留最小兼容层。
 
 ## 目录结构
 
 ```
 .
-├── CLAUDE.md              # 全局指令
-├── settings.json          # 权限、插件、hook、模型
-├── lessons.md             # 自我纠正日志模板（通过 hook 自动加载）
-├── rules/                 # 编码规范（common + python/typescript/golang）
-├── hooks/                 # 带渐变进度条的状态栏
-├── mcp/                   # MCP 服务器配置（Lark-MCP）
-├── plugins/               # 插件目录与安装指南
-├── skills/                # 内置自定义 skill
-├── docs/                  # 论文摘要、实战示例
+├── AGENTS.md              # 全局指令
+├── config.toml            # Codex 设置（模型、权限、MCP、lessons 注入）
+├── agents/                # Multi-agent 角色配置
+├── docs/                  # 迁移说明与支持文档
+├── lessons.md             # 自我纠正源日志
+├── skills/                # 仓库自带本地技能（paper-reading、adversarial-review、handoff、humanizer、update）
+├── VERSION                # 安装器版本
 └── install.sh / install.ps1
 ```
 
-## 核心机制
+## 快速开始
 
-- **分层规则** — `rules/common/`（通用）被各语言目录扩展，每个文件引用一个更深的 skill（模式、测试、安全）。
-- **状态栏** — 模型、目录、venv、git 分支、上下文窗口（渐变条）、5 小时用量倒计时。脚本在 `hooks/statusline.sh`。
-- **自我改进回路** — 纠正按范围路由到 `~/.claude/lessons.md`（跨项目）或项目 `MEMORY.md`（本地）。`SessionStart` hook 在启动与压缩后自动注入。
-- **插件目录与 marketplace 地址** — 完整列表和安装命令见 [plugins/README.md](plugins/README.md)。
+一行远程安装：
 
-## 默认设置
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/Mizoreww/awesome-claude-code-config/codex/install.sh)
+```
 
-`settings.json` 预置了一组高性能默认值。旧版 Claude Code 会静默忽略未识别键；只有 `auto` 模式做版本门控（低于 2.1.80 时安装器自动降级为 `bypassPermissions`）。
+本地安装：
 
-| 键 | 值 | 作用 |
-|----|-----|-----|
-| `permissions.defaultMode` | `auto` | 自动批准安全操作、拦截高风险操作 |
-| `effortLevel` | `max` | `/effort` 固定最高推理档 |
-| `betas` | `extended-cache-ttl-2025-04-11` | 1 小时提示缓存（替代默认 5 分钟） |
-| `env.CLAUDE_CODE_NO_FLICKER` | `1` | 全屏渲染 |
-| `env.CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | `1` | 固定思考预算（Opus 4.7 不受影响） |
+```bash
+git clone -b codex https://github.com/Mizoreww/awesome-claude-code-config.git
+cd awesome-claude-code-config
+bash install.sh
+```
 
-重新安装时会智能合并 `env`、`permissions.allow`、`enabledPlugins`、`hooks.SessionStart`、`statusLine`，保留你的改动。你在 `enabledPlugins` 中手动添加的本目录之外的插件会原样保留。
+然后重启 Codex。
+
+## 交互式安装器
+
+Codex 分支在 Bash 和 PowerShell 上都使用同样的两层交互选择器，但菜单分组、默认值和安装目标都是 Codex 原生的。
+
+### Bash
+
+```bash
+bash install.sh
+bash install.sh --all
+bash install.sh --dry-run
+```
+
+### PowerShell
+
+```powershell
+pwsh -NoProfile -File .\install.ps1
+pwsh -NoProfile -File .\install.ps1 -All
+pwsh -NoProfile -File .\install.ps1 -DryRun
+```
+
+行为说明：
+
+- Bash 的纯无参运行在可用终端中会进入交互模式；如果无法打开终端，就会警告并回退到非交互式全量安装。
+- PowerShell 的纯无参运行在可用控制台 I/O 下会进入交互模式；如果无法使用控制台，就会警告并回退到非交互式全量安装。
+- Bash 的 `--dry-run` 会以非交互式方式预览完整安装。
+- PowerShell 的 `-DryRun` 单独使用时，会以非交互式方式预览完整安装。
+- PowerShell 会把空的交互提交明确视为无操作（no-op）。
+
+### Codex 菜单分组与默认值
+
+| 分组 | 条目 | 默认值 |
+|------|------|--------|
+| Core | `AGENTS.md`、`config.toml`、`lessons.md` | 开启 |
+| Agents | `explorer`、`reviewer`、`docs-researcher` | 开启 |
+| Skills — Recommended | `superpowers`、`document-skills`、`example-skills`、`coding-foundations`、`paper-reading`、`humanizer`、`humanizer-zh`、`handoff`、`adversarial-review`、`update` | 除 `humanizer-zh` 外开启 |
+| Skills — AI Research | `tokenization`、`fine-tuning`、`post-training`、`distributed-training`、`inference-serving`、`optimization`、`deepxiv` | 关闭 |
+| MCP Servers | `context7`、`github`、`playwright`、`openaiDeveloperDocs`、`lark-mcp` | 除 `lark-mcp` 外均开启 |
+
+## 安装器参数
+
+```bash
+./install.sh                         # 终端可用时进入交互式选择器
+./install.sh --all                   # 非交互式全量安装
+./install.sh --core                  # 仅 AGENTS.md / lessons.md / config.toml / agents/*
+./install.sh --mcp                   # 仅 MCP 服务
+./install.sh --skills core           # 仅核心技能集
+./install.sh --skills ai-research    # 仅 AI 研究技能集
+./install.sh --version               # 查看 source/installed/remote 版本
+./install.sh --uninstall --skills    # 仅卸载受管技能
+./install.sh --dry-run               # 非交互式完整预览
+```
+
+## 核心特性
+
+### 自我改进循环（仅 lessons）
+
+1. 用户纠正会记录到 `~/.codex/lessons.md`
+2. 新会话自动加载 `~/.codex/lessons.md`
+3. 稳定模式沉淀到 `~/.codex/AGENTS.md`
+
+### lessons 自动注入
+
+`config.toml` 使用：
+
+```toml
+model_instructions_file = "lessons.md"
+```
+
+这样在会话开始时就会加载纠错规则。
+
+### 开箱即用 Multi-Agent
+
+`config.toml` 默认开启实验特性 `multi_agent`，并预置 3 个角色：
+
+- `explorer`：代码路径探索与证据归纳
+- `reviewer`：正确性/回归/安全风险审查
+- `docs_researcher`：通过 OpenAI docs MCP + Context7 做 API/文档核验
+
+角色配置文件位于 `agents/*.toml`，安装后会落到 `~/.codex/agents/`。
+
+### 通过技能实现分层规则
+
+```
+核心行为       → AGENTS.md
+  ↓ 由技能强化
+skills/rules  → python-patterns、golang-patterns、frontend-patterns
+```
+
+保证通用原则与语言特定实践一致。
+
+### Skill-First 安装
+
+`install.sh` 会从开源生态安装一组实用技能：
+
+| 技能集 | 来源 | 覆盖范围 |
+|-------|------|----------|
+| superpowers | [obra/superpowers](https://github.com/obra/superpowers) | 完整原生 superpowers 集合，含 brainstorming、计划执行、review handoff、worktree 等 |
+| coding-foundations | [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code) | 语言模式、测试、安全、验证（面向 Codex 的展示名） |
+| anthropic skills packs | [anthropics/skills](https://github.com/anthropics/skills) | 文档处理、前端设计、画布/艺术、MCP builder |
+| DeepXiv skills | [DeepXiv/deepxiv_sdk](https://github.com/DeepXiv/deepxiv_sdk) | 安装时始终拉取最新 DeepXiv 研究工作流（`deepxiv-cli`、`deepxiv-baseline-table`、`deepxiv-trending-digest`） |
+| AI research skills | [zechenzhangAGI/AI-research-SKILLs](https://github.com/zechenzhangAGI/AI-research-SKILLs) | 分词、微调、后训练、推理服务、分布式训练、优化 |
+
+Superpowers 采用仓库当前的原生发现安装方式：
+- clone 到 `~/.codex/superpowers`
+- 将 `~/.codex/superpowers/skills` 符号链接到 `~/.agents/skills/superpowers`
+- 清理 `~/.codex/skills` 下旧的局部复制安装（`using-superpowers`、`systematic-debugging`、`writing-plans`、`test-driven-development`）
+
+本仓库内置本地技能：
+- `paper-reading`（`skills/paper-reading/SKILL.md`）— 结构化论文阅读与总结
+- `adversarial-review`（`skills/adversarial-review/SKILL.md`）— 跨模型对抗式代码审查，通过对立 AI CLI 执行（来自 [poteto/noodle](https://github.com/poteto/noodle/tree/main/.agents/skills/adversarial-review)）
+- `handoff`（`skills/handoff/SKILL.md`）— 将当前对话压缩成交接文档
+- `humanizer`（`skills/humanizer/SKILL.md`）— 检测并去除文本中的 AI 写作痕迹（来自 [blader/humanizer](https://github.com/blader/humanizer)）
+- `humanizer-zh`（`skills/humanizer-zh/SKILL.md`）— 移除中文文本中的 AI 写作痕迹
+- `update`（`skills/update/SKILL.md`）— 将已安装的 Codex 配置更新到最新 `codex` 分支版本
+
+DeepXiv 技能会在每次执行 `install.sh` 时像 superpowers 一样从上游刷新安装：
+- `deepxiv-cli`
+- `deepxiv-baseline-table`
+- `deepxiv-trending-digest`
+
+对于 Codex 用户，不需要单独安装本地 `deepxiv` CLI。只要把这些技能持续刷新到 Codex 中，就满足本仓库支持的使用方式。
+
+### 版本变更日志策略
+
+AGENTS.md 包含 **版本变更日志** 规则：在做版本级改动（新功能、重大重构、Breaking Change）时，agent 会主动在项目根目录维护 `CHANGELOG.md`，每条记录包含功能、设计理念和注意细节。使设计决策与代码同步可追溯。
+
+### MCP 集成
+
+`config.toml` 默认包含以下 MCP 服务：
+
+| 服务 | 用途 |
+|------|------|
+| Lark MCP | 飞书文档、表格、群聊、Base 等（[repo](https://github.com/larksuite/lark-openapi-mcp)） |
+| Context7 | 最新库文档检索（[repo](https://github.com/upstash/context7)） |
+| GitHub | Issue / PR / 仓库工作流（[repo](https://github.com/github/github-mcp-server)） |
+| Playwright | 浏览器自动化与 E2E 测试（[repo](https://github.com/microsoft/playwright-mcp)） |
+| OpenAI Developer Docs | OpenAI 官方文档 MCP 端点（`https://developers.openai.com/mcp`） |
+
+## 安装说明
+
+1. 请填入你自己的凭据：
+   - `YOUR_APP_ID` / `YOUR_APP_SECRET`（Lark）
+   - `YOUR_GITHUB_PAT`（GitHub MCP）
+2. 该配置使用当前 Codex 配置风格（例如顶层 `web_search = "live"`）。
+3. 如果 `~/.codex/config.toml` 已存在，安装器会跳过覆盖；如需更新请手动合并。
+
+### 对抗式代码审查
+
+AGENTS.md 包含 **Code Review** 规则：需要代码审查时，调用 `adversarial-review` skill（来自 [poteto/noodle](https://github.com/poteto/noodle/tree/main/.agents/skills/adversarial-review)）。在 Codex 会话中，该 skill 可以调用对侧模型 CLI（`claude -p`）来产出跨模型对抗分析和结构化裁决（PASS / CONTESTED / REJECT）；反向的 `codex exec` 路径仍保留在 skill 文档里，用于兼容其他环境。
+
+## 面向 Claude Code 主分支迁移用户的兼容说明
+
+参见 [`docs/claude-main-to-codex-migration.md`](./docs/claude-main-to-codex-migration.md)，其中整理了以下映射关系：
+
+- `CLAUDE.md` → `AGENTS.md`
+- `settings.json` → `config.toml`
+- Claude 时代的插件 → Codex skills / MCP / 内建能力
+- `mcp/mcp-servers.json` → `config.toml` 中的 `[mcp_servers.*]`
+
+## 安全提示
+
+模板默认偏向高级用户：
+- `approval_policy = "never"`
+- `sandbox_mode = "danger-full-access"`
+
+如果你希望更安全的默认值，请在 `~/.codex/config.toml` 中自行调整。
 
 ## 自定义
 
-- **新增语言**：创建 `rules/<lang>/` 扩展 `rules/common/`
-- **新增 skill**：放入 `skills/<name>/SKILL.md`
-- **改造 CLAUDE.md**：按你的 shell、包管理器、项目情境调整
+- **调整全局行为**：编辑 `AGENTS.md`
+- **扩展本地规则**：在 `~/.codex/skills` 扩展技能
+- **调整模型与运行参数**：编辑 `config.toml`
+- **启用/禁用 MCP**：编辑 `config.toml` 的 MCP 配置，或使用 `codex mcp` 命令
 
 ## 致谢
 
-- [Claude Code in Action](https://anthropic.skilljar.com/claude-code-in-action) — Anthropic Academy 官方课程
-- [为 10 个 Claude Code 打工](https://mp.weixin.qq.com/s/9qPD3gXj3HLmrKC64Q6fbQ) by 胡渊鸣 — 多实例并行实践
-- [Harness Engineering](https://openai.com/index/harness-engineering/) by OpenAI
-- [Anthropic Engineering](https://www.anthropic.com/engineering) / [OpenAI Engineering](https://openai.com/news/engineering/)
-- [Claude Code Best Practice](https://github.com/shanraisshan/claude-code-best-practice) by shanraisshan
-- [Claude How To](https://github.com/luongnv89/claude-howto) by luongnv89
+- [**Harness Engineering**](https://openai.com/zh-Hans-CN/index/harness-engineering/) by OpenAI — 从”写代码”转向”设计系统并驾驭 Agent”
+- [**Anthropic Engineering**](https://www.anthropic.com/engineering) by Anthropic — 工程博客，涵盖 Agent 开发、评估方法与构建可靠 AI 系统
+- [**OpenAI Engineering**](https://openai.com/news/engineering/) by OpenAI — 工程博客，分享构建和扩展 AI 系统的技术洞察
 
-## License
+## 许可证
 
 MIT
