@@ -7,7 +7,7 @@ set -euo pipefail
 # ============================================================
 
 CODEX_DIR="$HOME/.codex"
-REPO_URL="https://github.com/Mizoreww/awesome-claude-code-config"
+REPO_URL="https://github.com/Yastruhank/awesome-claude-code-config"
 VERSION_STAMP_FILE="$CODEX_DIR/.codex-config-version"
 LEGACY_VERSION_STAMP_FILE="$CODEX_DIR/.claude-code-config-version"
 INSTALLER="$CODEX_DIR/skills/.system/skill-installer/scripts/install-skill-from-github.py"
