@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+- **Remove invalid `mcp__*` wildcard from `permissions.allow`**: Claude Code's `/doctor` rejects a bare `mcp__*` in *allow* rules. In allow rules a glob is only valid in the **tool position** after a literal `mcp__<server>__` prefix (e.g. `mcp__github__*`) — the server-name segment itself cannot be globbed. The entry was silently skipped, so removing it is behaviour-preserving (MCP tools already fell through to the `auto` permission prompt). To pre-allow MCP tools, add valid per-server entries such as `mcp__github` or `mcp__github__*`. (Deny/ask rules still accept wildcards anywhere.)
+
 ## [2.6.1] - 2026-05-25
 
 ### Features
