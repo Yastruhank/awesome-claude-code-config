@@ -452,6 +452,9 @@ stamp_version() {
   local ver
   ver="$(get_source_version)"
   if [[ "$ver" != "unknown" ]] && ! $DRY_RUN; then
+    # Component-only installs (--mcp, --skills) may run before ~/.codex exists;
+    # a failed redirect would kill the script under set -e before the summary.
+    mkdir -p "$CODEX_DIR"
     echo "$ver" > "$VERSION_STAMP_FILE"
     rm -f "$LEGACY_VERSION_STAMP_FILE"
   fi
@@ -545,6 +548,9 @@ install_core() {
       fi
       # config.toml references lessons.md via model_instructions_file; make
       # sure the file exists even when the Lessons item was deselected.
+      if ! $SELECT_CORE_LESSONS && [[ ! -f "$CODEX_DIR/lessons.md" ]]; then
+        warn "config.toml requires lessons.md (model_instructions_file); seeding it although Lessons was deselected"
+      fi
       seed_lessons_if_missing
     fi
 
@@ -648,9 +654,12 @@ install_mcp() {
     return 0
   fi
 
-  add_mcp_server lark-mcp -- npx -y @larksuiteoapi/lark-mcp mcp -a YOUR_APP_ID -s YOUR_APP_SECRET
+  # lark-mcp and github need real credentials; configuring them with the
+  # template placeholders would create active-but-broken servers. They stay
+  # opt-in via the interactive menu or a manual `codex mcp add`.
+  info "Skipping lark-mcp and github MCP servers: they require real credentials."
+  info "Enable them via the interactive installer or 'codex mcp add' after filling credentials."
   add_mcp_server context7 -- npx -y @upstash/context7-mcp
-  add_mcp_server github --env GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PAT -- npx -y @modelcontextprotocol/server-github
   add_mcp_server playwright -- npx -y @playwright/mcp@latest
   add_mcp_server openaiDeveloperDocs --url https://developers.openai.com/mcp
   report_mcp_result
@@ -665,7 +674,10 @@ install_skill_paths() {
     return 0
   fi
 
-  python3 "$INSTALLER" --repo "$repo" --path "$@" || warn "Skill install from $repo returned non-zero (possibly already installed)"
+  if ! python3 "$INSTALLER" --repo "$repo" --path "$@"; then
+    warn "Skill install from $repo returned non-zero (possibly already installed)"
+    SKIPPED_COMPONENTS+=("skill pack from $repo (installer returned non-zero)")
+  fi
 }
 
 reinstall_skill_paths() {
@@ -686,7 +698,10 @@ reinstall_skill_paths() {
     fi
   done
 
-  python3 "$INSTALLER" --repo "$repo" --path "$@" || warn "Skill reinstall from $repo returned non-zero"
+  if ! python3 "$INSTALLER" --repo "$repo" --path "$@"; then
+    warn "Skill reinstall from $repo returned non-zero"
+    SKIPPED_COMPONENTS+=("skill pack from $repo (installer returned non-zero)")
+  fi
 }
 
 remove_legacy_superpowers_skills() {
@@ -716,6 +731,7 @@ install_superpowers() {
 
   if ! command -v git >/dev/null 2>&1; then
     warn "git not found. Skip full superpowers install."
+    SKIPPED_COMPONENTS+=("superpowers skill set (git not found)")
     return 0
   fi
 
@@ -725,10 +741,12 @@ install_superpowers() {
     fi
   elif [[ -e "$SUPERPOWERS_DIR" ]]; then
     warn "$SUPERPOWERS_DIR exists but is not a git repo -- skipping full superpowers install"
+    SKIPPED_COMPONENTS+=("superpowers skill set ($SUPERPOWERS_DIR is not a git repo)")
     return 0
   else
     if ! git clone "$SUPERPOWERS_REPO_URL" "$SUPERPOWERS_DIR"; then
       warn "Failed to clone superpowers repo"
+      SKIPPED_COMPONENTS+=("superpowers skill set (clone failed)")
       return 0
     fi
     ok "Cloned superpowers repo to $SUPERPOWERS_DIR"
@@ -739,6 +757,7 @@ install_superpowers() {
   if [[ -L "$SUPERPOWERS_LINK" || -e "$SUPERPOWERS_LINK" ]]; then
     if [[ ! -L "$SUPERPOWERS_LINK" ]]; then
       warn "$SUPERPOWERS_LINK exists and is not a symlink -- skipping link creation"
+      SKIPPED_COMPONENTS+=("superpowers skills link ($SUPERPOWERS_LINK is not a symlink)")
       return 0
     fi
     rm -f "$SUPERPOWERS_LINK"
@@ -1017,10 +1036,10 @@ deepxiv|DeepXiv research workflow skills|0|ai-deepxiv")
   GROUP_LABELS+=("MCP Servers")
   GROUP_HINTS+=("")
   GROUP_ITEMS+=("context7|Up-to-date library docs|1|mcp-context7
-github|GitHub workflows|1|mcp-github
+github|GitHub workflows (needs a real PAT)|0|mcp-github
 playwright|Browser automation|1|mcp-playwright
 openaiDeveloperDocs|Official OpenAI docs MCP|1|mcp-openai-docs
-lark-mcp|Feishu/Lark integration|0|mcp-lark")
+lark-mcp|Feishu/Lark integration (needs credentials)|0|mcp-lark")
 
   local num_groups=${#GROUP_LABELS[@]}
 
@@ -1362,7 +1381,12 @@ lark-mcp|Feishu/Lark integration|0|mcp-lark")
 }
 
 uninstall() {
-  local components=("${UNINSTALL_COMPONENTS[@]}")
+  # bash 3.2 + set -u: expanding an empty array with [@] raises "unbound
+  # variable", so guard with a length check before copying.
+  local components=()
+  if [[ ${#UNINSTALL_COMPONENTS[@]} -gt 0 ]]; then
+    components=("${UNINSTALL_COMPONENTS[@]}")
+  fi
   if [[ ${#components[@]} -eq 0 ]]; then
     components=(core mcp skills)
   fi
@@ -1373,7 +1397,7 @@ uninstall() {
     case "$comp" in
       core)
         echo "  - $CODEX_DIR/AGENTS.md"
-        echo "  - $CODEX_DIR/lessons.md"
+        echo "  - $CODEX_DIR/lessons.md (backed up first -- it holds your accumulated corrections)"
         echo "  - $CODEX_DIR/config.toml"
         echo "  - $CODEX_DIR/agents/*"
         ;;
@@ -1408,6 +1432,9 @@ uninstall() {
   for comp in "${components[@]}"; do
     case "$comp" in
       core)
+        # lessons.md holds the user's accumulated corrections; keep a backup
+        # next to it so an uninstall is never silent data loss.
+        backup_if_exists "$CODEX_DIR/lessons.md"
         rm -f "$CODEX_DIR/AGENTS.md" "$CODEX_DIR/lessons.md" "$CODEX_DIR/config.toml"
         rm -rf "$CODEX_DIR/agents"
         ok "Removed core files"

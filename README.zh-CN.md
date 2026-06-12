@@ -72,7 +72,7 @@ pwsh -NoProfile -File .\install.ps1 -DryRun
 | Agents | `explorer`、`reviewer`、`docs-researcher` | 开启 |
 | Skills — Recommended | `superpowers`、`document-skills`、`example-skills`、`coding-foundations`、`paper-reading`、`humanizer`、`humanizer-zh`、`handoff`、`adversarial-review`、`update` | 除 `humanizer-zh` 外开启 |
 | Skills — AI Research | `tokenization`、`fine-tuning`、`post-training`、`distributed-training`、`inference-serving`、`optimization`、`deepxiv` | 关闭 |
-| MCP Servers | `context7`、`github`、`playwright`、`openaiDeveloperDocs`、`lark-mcp` | 除 `lark-mcp` 外均开启 |
+| MCP Servers | `context7`、`github`、`playwright`、`openaiDeveloperDocs`、`lark-mcp` | 除 `github` 与 `lark-mcp`（需凭据）外均开启 |
 
 ## 安装器参数
 

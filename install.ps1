@@ -121,7 +121,7 @@ $script:SelectAiInferenceServing = $false
 $script:SelectAiOptimization = $false
 $script:SelectAiDeepXiv = $false
 $script:SelectMcpContext7 = $true
-$script:SelectMcpGithub = $true
+$script:SelectMcpGithub = $false
 $script:SelectMcpPlaywright = $true
 $script:SelectMcpOpenaiDeveloperDocs = $true
 $script:SelectMcpLark = $false
@@ -315,6 +315,8 @@ function Show-Version {
 function Set-VersionStamp {
     $ver = Get-SourceVersion
     if ($ver -ne "unknown" -and -not $DryRun) {
+        # Component-only installs may run before ~/.codex exists.
+        New-Item -ItemType Directory -Path $CODEX_DIR -Force | Out-Null
         Set-Content -Path $VERSION_STAMP_FILE -Value $ver -NoNewline
         Remove-Item -Force $LEGACY_VERSION_STAMP_FILE -ErrorAction SilentlyContinue
     }
@@ -345,7 +347,7 @@ function Reset-InteractiveSelections {
     $script:SelectAiOptimization = $false
     $script:SelectAiDeepXiv = $false
     $script:SelectMcpContext7 = $true
-    $script:SelectMcpGithub = $true
+    $script:SelectMcpGithub = $false
     $script:SelectMcpPlaywright = $true
     $script:SelectMcpOpenaiDeveloperDocs = $true
     $script:SelectMcpLark = $false
@@ -457,6 +459,9 @@ function Install-SelectedCoreFiles {
             -SkipIfExists
         # config.toml references lessons.md via model_instructions_file; make
         # sure the file exists even when the Lessons item was deselected.
+        if (-not $script:SelectCoreLessons -and -not (Test-Path (Join-Path $CODEX_DIR "lessons.md"))) {
+            Write-Warn "config.toml requires lessons.md (model_instructions_file); seeding it although Lessons was deselected"
+        }
         Install-LessonsIfMissing
     }
 }
@@ -734,10 +739,10 @@ function Show-InteractiveMenu {
             Hint = ""
             Items = @(
                 [pscustomobject]@{ Label = "context7"; Description = "Up-to-date library docs"; Default = $true; StateVar = "SelectMcpContext7" },
-                [pscustomobject]@{ Label = "github"; Description = "GitHub workflows"; Default = $true; StateVar = "SelectMcpGithub" },
+                [pscustomobject]@{ Label = "github"; Description = "GitHub workflows (needs a real PAT)"; Default = $false; StateVar = "SelectMcpGithub" },
                 [pscustomobject]@{ Label = "playwright"; Description = "Browser automation"; Default = $true; StateVar = "SelectMcpPlaywright" },
                 [pscustomobject]@{ Label = "openaiDeveloperDocs"; Description = "Official OpenAI docs MCP"; Default = $true; StateVar = "SelectMcpOpenaiDeveloperDocs" },
-                [pscustomobject]@{ Label = "lark-mcp"; Description = "Feishu/Lark integration"; Default = $false; StateVar = "SelectMcpLark" }
+                [pscustomobject]@{ Label = "lark-mcp"; Description = "Feishu/Lark integration (needs credentials)"; Default = $false; StateVar = "SelectMcpLark" }
             )
         }
     )
@@ -1081,9 +1086,12 @@ function Install-Mcp {
         return
     }
 
-    Add-McpServer "lark-mcp" @("--", "npx", "-y", "@larksuiteoapi/lark-mcp", "mcp", "-a", "YOUR_APP_ID", "-s", "YOUR_APP_SECRET")
+    # lark-mcp and github need real credentials; configuring them with the
+    # template placeholders would create active-but-broken servers. They stay
+    # opt-in via the interactive menu or a manual `codex mcp add`.
+    Write-Info "Skipping lark-mcp and github MCP servers: they require real credentials."
+    Write-Info "Enable them via the interactive installer or 'codex mcp add' after filling credentials."
     Add-McpServer "context7" @("--", "npx", "-y", "@upstash/context7-mcp")
-    Add-McpServer "github" @("--env", "GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PAT", "--", "npx", "-y", "@modelcontextprotocol/server-github")
     Add-McpServer "playwright" @("--", "npx", "-y", "@playwright/mcp@latest")
     Add-McpServer "openaiDeveloperDocs" @("--url", "https://developers.openai.com/mcp")
     Write-McpResult
@@ -1101,6 +1109,7 @@ function Install-SkillPaths {
     & $py $INSTALLER --repo $Repo --path @Paths
     if ($LASTEXITCODE -ne 0) {
         Write-Warn "Skill install from $Repo returned non-zero (possibly already installed)"
+        $script:SKIPPED_COMPONENTS += "skill pack from $Repo (installer returned non-zero)"
     }
 }
 
@@ -1125,6 +1134,7 @@ function Reinstall-SkillPaths {
     & $py $INSTALLER --repo $Repo --path @Paths
     if ($LASTEXITCODE -ne 0) {
         Write-Warn "Skill reinstall from $Repo returned non-zero"
+        $script:SKIPPED_COMPONENTS += "skill pack from $Repo (installer returned non-zero)"
     }
 }
 
@@ -1155,6 +1165,7 @@ function Install-Superpowers {
 
     if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
         Write-Warn "git not found. Skip full superpowers install."
+        $script:SKIPPED_COMPONENTS += "superpowers skill set (git not found)"
         return
     }
 
@@ -1171,11 +1182,13 @@ function Install-Superpowers {
         }
     } elseif (Test-Path $SUPERPOWERS_DIR) {
         Write-Warn "$SUPERPOWERS_DIR exists but is not a git repo -- skipping full superpowers install"
+        $script:SKIPPED_COMPONENTS += "superpowers skill set ($SUPERPOWERS_DIR is not a git repo)"
         return
     } else {
         git clone $SUPERPOWERS_REPO_URL $SUPERPOWERS_DIR
         if ($LASTEXITCODE -ne 0) {
             Write-Warn "Failed to clone superpowers repo"
+            $script:SKIPPED_COMPONENTS += "superpowers skill set (clone failed)"
             return
         }
         Write-Ok "Cloned superpowers repo to $SUPERPOWERS_DIR"
@@ -1190,6 +1203,7 @@ function Install-Superpowers {
         $isReparsePoint = ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0
         if (-not $isReparsePoint) {
             Write-Warn "$SUPERPOWERS_LINK exists and is not a junction/symlink -- skipping link creation"
+            $script:SKIPPED_COMPONENTS += "superpowers skills link ($SUPERPOWERS_LINK is not a junction/symlink)"
             return
         }
         # Remove existing reparse point before recreating
@@ -1321,7 +1335,7 @@ function Invoke-Uninstall {
         switch ($comp) {
             "core" {
                 Write-Host "  - $CODEX_DIR\AGENTS.md"
-                Write-Host "  - $CODEX_DIR\lessons.md"
+                Write-Host "  - $CODEX_DIR\lessons.md (backed up first -- it holds your accumulated corrections)"
                 Write-Host "  - $CODEX_DIR\config.toml"
                 Write-Host "  - $CODEX_DIR\agents\*"
             }
@@ -1356,6 +1370,9 @@ function Invoke-Uninstall {
     foreach ($comp in $components) {
         switch ($comp) {
             "core" {
+                # lessons.md holds the user's accumulated corrections; keep a
+                # backup next to it so an uninstall is never silent data loss.
+                Backup-IfExists (Join-Path $CODEX_DIR "lessons.md")
                 Remove-Item -Force (Join-Path $CODEX_DIR "AGENTS.md")  -ErrorAction SilentlyContinue
                 Remove-Item -Force (Join-Path $CODEX_DIR "lessons.md") -ErrorAction SilentlyContinue
                 Remove-Item -Force (Join-Path $CODEX_DIR "config.toml") -ErrorAction SilentlyContinue

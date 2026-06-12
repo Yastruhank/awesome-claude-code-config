@@ -72,7 +72,7 @@ Behavior notes:
 | Agents | `explorer`, `reviewer`, `docs-researcher` | On |
 | Skills — Recommended | `superpowers`, `document-skills`, `example-skills`, `coding-foundations`, `paper-reading`, `humanizer`, `humanizer-zh`, `handoff`, `adversarial-review`, `update` | On except `humanizer-zh` |
 | Skills — AI Research | `tokenization`, `fine-tuning`, `post-training`, `distributed-training`, `inference-serving`, `optimization`, `deepxiv` | Off |
-| MCP Servers | `context7`, `github`, `playwright`, `openaiDeveloperDocs`, `lark-mcp` | On except `lark-mcp` |
+| MCP Servers | `context7`, `github`, `playwright`, `openaiDeveloperDocs`, `lark-mcp` | On except `github` and `lark-mcp` (need credentials) |
 
 ## Installer Options
 

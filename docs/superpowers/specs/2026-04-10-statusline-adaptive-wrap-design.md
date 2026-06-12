@@ -1,5 +1,7 @@
 # Statusline Adaptive Wrap Design
 
+> **Historical planning snapshot.** Parts of this document describe behavior that has since been changed or removed (e.g., statusline hooks, lessons.md overwrites, `|| true` MCP setup). Do not implement from this document; treat the current installers and README as the source of truth.
+
 **Date:** 2026-04-10
 **Status:** Draft
 **File:** `~/.claude/hooks/statusline.sh`

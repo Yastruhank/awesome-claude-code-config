@@ -1,5 +1,7 @@
 # Statusline Adaptive Wrap Implementation Plan
 
+> **Historical planning snapshot.** Parts of this document describe behavior that has since been changed or removed (e.g., statusline hooks, lessons.md overwrites, `|| true` MCP setup). Do not implement from this document; treat the current installers and README as the source of truth.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `~/.claude/hooks/statusline.sh` dynamically wrap segments to the next line based on terminal width, with adaptive progress bar sizing.
