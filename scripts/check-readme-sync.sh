@@ -20,6 +20,7 @@ compare() {
 compare "Headings"    "$(grep -c '^#' "$EN")" "$(grep -c '^#' "$ZH")"
 compare "Code blocks" "$(grep -c '^\`\`\`' "$EN")" "$(grep -c '^\`\`\`' "$ZH")"
 compare "Table rows"  "$(grep -c '^|' "$EN")" "$(grep -c '^|' "$ZH")"
-compare "Links"       "$(grep -oP '\[.*?\]\(.*?\)' "$EN" | wc -l)" "$(grep -oP '\[.*?\]\(.*?\)' "$ZH" | wc -l)"
+# ERE instead of PCRE (-P) so the check also works with BSD/macOS grep.
+compare "Links"       "$(grep -oE '\[[^][]*\]\([^()]*\)' "$EN" | wc -l)" "$(grep -oE '\[[^][]*\]\([^()]*\)' "$ZH" | wc -l)"
 
 $ok && echo "All checks passed." || { echo "Structural differences found."; exit 1; }

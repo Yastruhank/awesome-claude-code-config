@@ -2,7 +2,7 @@
 
 # Codex Configuration
 
-Production-ready configuration for [Codex CLI](https://github.com/openai/codex) — an interactive installer plus one-command full install of global instructions, multi-agent roles, layered coding standards through skills, MCP integration, custom status bar, and a lessons-driven self-improvement loop. This branch is Codex-first and keeps a small compatibility bridge for users migrating from the [Claude Code main config](https://github.com/Mizoreww/awesome-claude-code-config/tree/main).
+Production-ready configuration for [Codex CLI](https://github.com/openai/codex) — an interactive installer plus one-command full install of global instructions, multi-agent roles, layered coding standards through skills, MCP integration, and a lessons-driven self-improvement loop. This branch is Codex-first and keeps a small compatibility bridge for users migrating from the [Claude Code main config](https://github.com/Mizoreww/awesome-claude-code-config/tree/main).
 
 ## Directory Structure
 
@@ -168,15 +168,15 @@ Default MCP servers in `config.toml`:
 
 | Server | Purpose |
 |--------|---------|
-| Lark MCP | Feishu/Lark docs, sheets, chats, base ([repo](https://github.com/larksuite/lark-openapi-mcp)) |
+| Lark MCP | Feishu/Lark docs, sheets, chats, base — commented out by default, needs credentials ([repo](https://github.com/larksuite/lark-openapi-mcp)) |
 | Context7 | up-to-date library documentation lookup ([repo](https://github.com/upstash/context7)) |
-| GitHub | issue/PR/repo workflows ([repo](https://github.com/github/github-mcp-server)) |
+| GitHub | issue/PR/repo workflows — commented out by default, needs a PAT ([repo](https://github.com/github/github-mcp-server)) |
 | Playwright | browser automation and E2E testing ([repo](https://github.com/microsoft/playwright-mcp)) |
 | OpenAI Developer Docs | official OpenAI docs MCP endpoint (`https://developers.openai.com/mcp`) |
 
 ## Installation Notes
 
-1. Fill your own credentials:
+1. The Lark and GitHub MCP entries ship commented out in `config.toml`. To enable them, fill your own credentials and uncomment the blocks:
    - `YOUR_APP_ID` / `YOUR_APP_SECRET` (Lark)
    - `YOUR_GITHUB_PAT` (GitHub MCP)
 2. This config uses current Codex style (for example `web_search = "live"` at top-level).
@@ -197,11 +197,11 @@ See [`docs/claude-main-to-codex-migration.md`](./docs/claude-main-to-codex-migra
 
 ## Security Note
 
-Template defaults are power-user oriented:
-- `approval_policy = "never"`
-- `sandbox_mode = "danger-full-access"`
+Template defaults are conservative:
+- `approval_policy = "on-request"`
+- `sandbox_mode = "workspace-write"`
 
-If you prefer safer defaults, adjust these in `~/.codex/config.toml`.
+If you prefer full autonomy, switch these to `approval_policy = "never"` and `sandbox_mode = "danger-full-access"` in `~/.codex/config.toml`.
 
 ## Customization
 

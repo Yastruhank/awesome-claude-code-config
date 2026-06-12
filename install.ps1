@@ -68,9 +68,21 @@ $CODEX_DIR            = Join-Path $HOME ".codex"
 $script:REPO_OWNER    = if ($env:REPO_OWNER) { $env:REPO_OWNER } else { "Mizoreww" }
 $script:REPO_NAME     = if ($env:REPO_NAME) { $env:REPO_NAME } else { "awesome-claude-code-config" }
 $script:REPO_BRANCH   = if ($env:REPO_BRANCH) { $env:REPO_BRANCH } else { "codex" }
-$script:REPO_OWNER    = if ($env:REPO_OWNER_OVERRIDE) { $env:REPO_OWNER_OVERRIDE } else { $script:REPO_OWNER }
-$script:REPO_NAME     = if ($env:REPO_NAME_OVERRIDE) { $env:REPO_NAME_OVERRIDE } else { $script:REPO_NAME }
-$script:REPO_BRANCH   = if ($env:REPO_BRANCH_OVERRIDE) { $env:REPO_BRANCH_OVERRIDE } else { $script:REPO_BRANCH }
+# These values are interpolated into download URLs used in remote mode.
+# Validate against a safe charset so a hostile/garbled environment cannot
+# smuggle unexpected content into the URLs.
+if ($script:REPO_OWNER -notmatch '^[A-Za-z0-9._-]+$') {
+    Write-Host "[ERROR] Invalid REPO_OWNER: $($script:REPO_OWNER)" -ForegroundColor Red
+    exit 1
+}
+if ($script:REPO_NAME -notmatch '^[A-Za-z0-9._-]+$') {
+    Write-Host "[ERROR] Invalid REPO_NAME: $($script:REPO_NAME)" -ForegroundColor Red
+    exit 1
+}
+if ($script:REPO_BRANCH -notmatch '^[A-Za-z0-9._/-]+$') {
+    Write-Host "[ERROR] Invalid REPO_BRANCH: $($script:REPO_BRANCH)" -ForegroundColor Red
+    exit 1
+}
 $script:REPO_URL      = "https://github.com/$($script:REPO_OWNER)/$($script:REPO_NAME)"
 $VERSION_STAMP_FILE   = Join-Path $CODEX_DIR ".codex-config-version"
 $LEGACY_VERSION_STAMP_FILE = Join-Path $CODEX_DIR ".claude-code-config-version"
@@ -82,6 +94,9 @@ $SUPERPOWERS_LINK     = Join-Path $AGENTS_SKILLS_DIR "superpowers"
 
 $script:InteractiveMode = $false
 $script:InteractiveSelectionHasAny = $false
+$script:SKIPPED_COMPONENTS = @()
+$script:MCP_FAILED_SERVERS = @()
+$script:LessonsSeeded = $false
 $script:SelectCoreAgentsMd = $true
 $script:SelectCoreConfig = $true
 $script:SelectCoreLessons = $true
@@ -180,8 +195,13 @@ function Detect-ScriptDir {
     $tarball = Join-Path $tmpdir "archive.tar.gz"
     try {
         Invoke-WebRequest -Uri $tarball_url -OutFile $tarball -UseBasicParsing
-        # tar is available on Windows 10 1803+
+        # tar is available on Windows 10 1803+. Native command failures do not
+        # throw under Windows PowerShell 5.1, so check the exit code explicitly
+        # instead of relying on the catch block.
         tar -xzf $tarball -C $tmpdir --strip-components=1
+        if ($LASTEXITCODE -ne 0) {
+            throw "tar extraction failed with exit code $LASTEXITCODE"
+        }
         Remove-Item $tarball -Force
     } catch {
         Write-Err "Failed to download source: $_"
@@ -392,6 +412,28 @@ function Copy-SelectedDirectory {
     }
 }
 
+# lessons.md is the user's accumulated correction memory (see AGENTS.md), and
+# config.toml points model_instructions_file at it. Never overwrite an existing
+# copy; only seed the template when the file is absent.
+function Install-LessonsIfMissing {
+    if ($script:LessonsSeeded) { return }
+    $script:LessonsSeeded = $true
+
+    $target = Join-Path $CODEX_DIR "lessons.md"
+    if (Test-Path $target) {
+        Write-Info "Preserving existing lessons.md (template not copied)"
+        return
+    }
+
+    if ($DryRun) {
+        Write-Info "Would copy: lessons.md -> $target"
+    } else {
+        New-Item -ItemType Directory -Path $CODEX_DIR -Force | Out-Null
+        Copy-Item (Join-Path $script:SCRIPT_DIR "lessons.md") $target -Force
+        Write-Ok "lessons.md installed"
+    }
+}
+
 function Install-SelectedCoreFiles {
     Write-Info "Installing selected core files..."
 
@@ -403,10 +445,9 @@ function Install-SelectedCoreFiles {
         -Source (Join-Path $script:SCRIPT_DIR "AGENTS.md") `
         -Target (Join-Path $CODEX_DIR "AGENTS.md") `
         -Label "AGENTS.md"
-    Copy-SelectedFile -Selected $script:SelectCoreLessons `
-        -Source (Join-Path $script:SCRIPT_DIR "lessons.md") `
-        -Target (Join-Path $CODEX_DIR "lessons.md") `
-        -Label "lessons.md"
+    if ($script:SelectCoreLessons) {
+        Install-LessonsIfMissing
+    }
 
     if ($script:SelectCoreConfig) {
         Copy-SelectedFile -Selected $true `
@@ -414,6 +455,9 @@ function Install-SelectedCoreFiles {
             -Target (Join-Path $CODEX_DIR "config.toml") `
             -Label "config.toml" `
             -SkipIfExists
+        # config.toml references lessons.md via model_instructions_file; make
+        # sure the file exists even when the Lessons item was deselected.
+        Install-LessonsIfMissing
     }
 }
 
@@ -446,6 +490,7 @@ function Install-SelectedRecommendedSkills {
     if (-not $remoteAvailable -and $needsRemote) {
         Write-Warn "skill-installer not found at $INSTALLER"
         Write-Warn "Remote skill packs that depend on it will be skipped."
+        $script:SKIPPED_COMPONENTS += "recommended remote skill packs (skill-installer not found)"
     }
 
     if ($script:SelectSkillSuperpowers) {
@@ -527,6 +572,7 @@ function Install-SelectedAiSkills {
     if (-not $remoteAvailable -and $needsRemote) {
         Write-Warn "skill-installer not found at $INSTALLER"
         Write-Warn "AI research skill packs that depend on it will be skipped."
+        $script:SKIPPED_COMPONENTS += "AI research skill packs (skill-installer not found)"
         return
     }
 
@@ -571,50 +617,57 @@ function Install-SelectedAiSkills {
     }
 }
 
+function Add-McpServer {
+    param([string]$Name, [string[]]$Arguments)
+
+    if ($DryRun) {
+        Write-Info "Would add MCP server: $Name"
+        return
+    }
+
+    codex mcp add $Name @Arguments 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warn "Failed to configure MCP server: $Name"
+        $script:MCP_FAILED_SERVERS += $Name
+    } else {
+        Write-Ok "MCP server configured: $Name"
+    }
+}
+
+function Write-McpResult {
+    if ($script:MCP_FAILED_SERVERS.Count -eq 0) {
+        Write-Ok "MCP setup complete (existing entries are ignored)"
+    } else {
+        Write-Warn "MCP setup finished with failures: $($script:MCP_FAILED_SERVERS -join ', ')"
+        $script:SKIPPED_COMPONENTS += "MCP servers: $($script:MCP_FAILED_SERVERS -join ', ')"
+    }
+}
+
 function Install-SelectedMcp {
     Write-Info "Installing selected MCP servers..."
 
     if (-not (Get-Command "codex" -ErrorAction SilentlyContinue)) {
         Write-Warn "codex CLI not found. Skip MCP setup."
+        $script:SKIPPED_COMPONENTS += "MCP servers (codex CLI not found)"
         return
     }
 
     if ($script:SelectMcpContext7) {
-        if ($DryRun) {
-            Write-Info "Would add MCP server: context7"
-        } else {
-            codex mcp add context7 -- npx -y @upstash/context7-mcp 2>$null
-        }
+        Add-McpServer "context7" @("--", "npx", "-y", "@upstash/context7-mcp")
     }
     if ($script:SelectMcpGithub) {
-        if ($DryRun) {
-            Write-Info "Would add MCP server: github"
-        } else {
-            codex mcp add github --env GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PAT -- npx -y @modelcontextprotocol/server-github 2>$null
-        }
+        Add-McpServer "github" @("--env", "GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PAT", "--", "npx", "-y", "@modelcontextprotocol/server-github")
     }
     if ($script:SelectMcpPlaywright) {
-        if ($DryRun) {
-            Write-Info "Would add MCP server: playwright"
-        } else {
-            codex mcp add playwright -- npx -y "@playwright/mcp@latest" 2>$null
-        }
+        Add-McpServer "playwright" @("--", "npx", "-y", "@playwright/mcp@latest")
     }
     if ($script:SelectMcpOpenaiDeveloperDocs) {
-        if ($DryRun) {
-            Write-Info "Would add MCP server: openaiDeveloperDocs"
-        } else {
-            codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp 2>$null
-        }
+        Add-McpServer "openaiDeveloperDocs" @("--url", "https://developers.openai.com/mcp")
     }
     if ($script:SelectMcpLark) {
-        if ($DryRun) {
-            Write-Info "Would add MCP server: lark-mcp"
-        } else {
-            codex mcp add lark-mcp -- npx -y @larksuiteoapi/lark-mcp mcp -a YOUR_APP_ID -s YOUR_APP_SECRET 2>$null
-        }
+        Add-McpServer "lark-mcp" @("--", "npx", "-y", "@larksuiteoapi/lark-mcp", "mcp", "-a", "YOUR_APP_ID", "-s", "YOUR_APP_SECRET")
     }
-    Write-Ok "Selected MCP setup complete (existing entries are ignored)"
+    Write-McpResult
 }
 
 function Show-InteractiveMenu {
@@ -983,24 +1036,23 @@ function Install-Core {
     }
 
     Backup-IfExists (Join-Path $CODEX_DIR "AGENTS.md")
-    Backup-IfExists (Join-Path $CODEX_DIR "lessons.md")
     Backup-IfExists (Join-Path $CODEX_DIR "agents")
 
     if ($DryRun) {
         Write-Info "Would copy: AGENTS.md  -> $CODEX_DIR\AGENTS.md"
-        Write-Info "Would copy: lessons.md -> $CODEX_DIR\lessons.md"
         Write-Info "Would copy: agents\*.toml -> $CODEX_DIR\agents\"
     } else {
         Copy-Item (Join-Path $script:SCRIPT_DIR "AGENTS.md")  (Join-Path $CODEX_DIR "AGENTS.md")  -Force
-        Copy-Item (Join-Path $script:SCRIPT_DIR "lessons.md") (Join-Path $CODEX_DIR "lessons.md") -Force
         $agentsSrc = Join-Path $script:SCRIPT_DIR "agents"
         if (Test-Path $agentsSrc) {
             $agentsDst = Join-Path $CODEX_DIR "agents"
             New-Item -ItemType Directory -Path $agentsDst -Force | Out-Null
             Copy-Item (Join-Path $agentsSrc "*.toml") $agentsDst -Force
         }
-        Write-Ok "AGENTS.md, lessons.md, and agents installed"
+        Write-Ok "AGENTS.md and agents installed"
     }
+
+    Install-LessonsIfMissing
 
     $configDest = Join-Path $CODEX_DIR "config.toml"
     if (Test-Path $configDest) {
@@ -1025,24 +1077,16 @@ function Install-Mcp {
 
     if (-not (Get-Command "codex" -ErrorAction SilentlyContinue)) {
         Write-Warn "codex CLI not found. Skip MCP setup."
+        $script:SKIPPED_COMPONENTS += "MCP servers (codex CLI not found)"
         return
     }
 
-    if ($DryRun) {
-        Write-Info "Would add MCP server: lark-mcp"
-        Write-Info "Would add MCP server: context7"
-        Write-Info "Would add MCP server: github"
-        Write-Info "Would add MCP server: playwright"
-        Write-Info "Would add MCP server: openaiDeveloperDocs"
-        return
-    }
-
-    codex mcp add lark-mcp -- npx -y @larksuiteoapi/lark-mcp mcp -a YOUR_APP_ID -s YOUR_APP_SECRET 2>$null
-    codex mcp add context7 -- npx -y @upstash/context7-mcp 2>$null
-    codex mcp add github --env GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PAT -- npx -y @modelcontextprotocol/server-github 2>$null
-    codex mcp add playwright -- npx -y "@playwright/mcp@latest" 2>$null
-    codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp 2>$null
-    Write-Ok "MCP setup complete (existing entries are ignored)"
+    Add-McpServer "lark-mcp" @("--", "npx", "-y", "@larksuiteoapi/lark-mcp", "mcp", "-a", "YOUR_APP_ID", "-s", "YOUR_APP_SECRET")
+    Add-McpServer "context7" @("--", "npx", "-y", "@upstash/context7-mcp")
+    Add-McpServer "github" @("--env", "GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PAT", "--", "npx", "-y", "@modelcontextprotocol/server-github")
+    Add-McpServer "playwright" @("--", "npx", "-y", "@playwright/mcp@latest")
+    Add-McpServer "openaiDeveloperDocs" @("--url", "https://developers.openai.com/mcp")
+    Write-McpResult
 }
 
 function Install-SkillPaths {
@@ -1224,9 +1268,8 @@ function Install-Skills {
                 "skills/frontend-patterns", "skills/security-review", "skills/tdd-workflow", "skills/verification-loop",
                 "skills/api-design", "skills/database-migrations"
             )
-            Reinstall-SkillPaths "DeepXiv/deepxiv_sdk" @(
-                "skills/deepxiv-cli", "skills/deepxiv-baseline-table", "skills/deepxiv-trending-digest"
-            )
+        } else {
+            $script:SKIPPED_COMPONENTS += "core remote skill packs (skill-installer not found)"
         }
 
         Install-LocalSkills
@@ -1235,6 +1278,7 @@ function Install-Skills {
     if ($SkillGroup -eq "ai-research" -or $SkillGroup -eq "all") {
         if (-not $remoteAvailable) {
             Write-Warn "Skipping AI research skills because skill-installer is unavailable"
+            $script:SKIPPED_COMPONENTS += "AI research skill packs (skill-installer not found)"
             return
         }
 
@@ -1249,6 +1293,12 @@ function Install-Skills {
             "10-optimization/flash-attention", "10-optimization/bitsandbytes",
             "12-inference-serving/vllm", "12-inference-serving/sglang",
             "12-inference-serving/tensorrt-llm", "12-inference-serving/llama-cpp"
+        )
+
+        # DeepXiv is grouped under "Skills - AI Research" in the README and the
+        # interactive menu; keep the non-interactive groups consistent with that.
+        Reinstall-SkillPaths "DeepXiv/deepxiv_sdk" @(
+            "skills/deepxiv-cli", "skills/deepxiv-baseline-table", "skills/deepxiv-trending-digest"
         )
     }
 }
@@ -1357,15 +1407,17 @@ try {
         exit 0
     }
 
+    # Uninstall only touches local state and -Help exits above; neither needs
+    # the source archive, so only enter remote download mode after them.
+    if ($Uninstall) {
+        Invoke-Uninstall
+        exit 0
+    }
+
     Detect-ScriptDir
 
     if ($Version) {
         Show-Version
-        exit 0
-    }
-
-    if ($Uninstall) {
-        Invoke-Uninstall
         exit 0
     }
 
@@ -1408,6 +1460,16 @@ try {
     }
 
     Set-VersionStamp
+
+    if ($script:SKIPPED_COMPONENTS.Count -gt 0) {
+        Write-Host ""
+        Write-Warn "Install finished, but some components were skipped:"
+        foreach ($comp in $script:SKIPPED_COMPONENTS) {
+            Write-Warn "  - $comp"
+        }
+        Write-Warn "Resolve the issues above and re-run the installer to complete them."
+    }
+
     Write-Ok "Done. Restart Codex to load new skills/config if needed."
 } finally {
     Remove-TempDir
