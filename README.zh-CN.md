@@ -62,7 +62,7 @@ pwsh -NoProfile -File .\install.ps1 -DryRun
 - PowerShell 的纯无参运行在可用控制台 I/O 下会进入交互模式；如果无法使用控制台，就会警告并回退到非交互式全量安装。
 - Bash 的 `--dry-run` 会以非交互式方式预览完整安装。
 - PowerShell 的 `-DryRun` 单独使用时，会以非交互式方式预览完整安装。
-- PowerShell 会把空的交互提交明确视为无操作（no-op）。
+- 两个安装器都会把空的交互提交视为无操作（no-op）——不安装任何内容，也不写版本戳。
 
 ### Codex 菜单分组与默认值
 

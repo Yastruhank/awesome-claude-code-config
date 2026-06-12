@@ -1214,6 +1214,7 @@ function Install-Superpowers {
     cmd /c mklink /j "$SUPERPOWERS_LINK" "$superPowersSkillsDir" | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Warn "Failed to create junction at $SUPERPOWERS_LINK"
+        $script:SKIPPED_COMPONENTS += "superpowers skills link (junction creation failed)"
     } else {
         Write-Ok "Linked superpowers skills into $SUPERPOWERS_LINK"
     }

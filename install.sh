@@ -1357,6 +1357,13 @@ lark-mcp|Feishu/Lark integration (needs credentials)|0|mcp-lark")
     esac
   done
 
+  if ! $core_selected && ! $skills_selected && ! $mcp_selected; then
+    # Match the PowerShell behavior: an empty submission is a no-op and must
+    # not fall through to the version stamp ("installed" with nothing done).
+    info "No items selected. Nothing to do."
+    cleanup_and_exit 0
+  fi
+
   INSTALL_CORE=$core_selected
   INSTALL_SKILLS=$skills_selected
   INSTALL_MCP=$mcp_selected

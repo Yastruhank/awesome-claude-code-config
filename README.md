@@ -62,7 +62,7 @@ Behavior notes:
 - PowerShell plain no-arg runs are interactive when console I/O is available; if it cannot use the console, it warns and falls back to a non-interactive full install.
 - In Bash, `--dry-run` previews the full install non-interactively.
 - In PowerShell, `-DryRun` alone previews the full install non-interactively.
-- PowerShell treats an empty interactive submission as a no-op.
+- Both shells treat an empty interactive submission as a no-op (nothing is installed and no version stamp is written).
 
 ### Codex menu groups and defaults
 
